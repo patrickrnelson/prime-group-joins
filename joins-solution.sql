@@ -49,3 +49,32 @@ FROM "products"
 JOIN "warehouse_product" ON "products".id = "warehouse_product".product_id
 WHERE "products".description = 'diet pepsi'
 GROUP BY "products".description;
+
+-- 9. How much was the total cost for each order?
+SELECT "orders".id, SUM("products".unit_price * "line_items".quantity) as total_cost
+FROM "orders"
+JOIN "line_items" ON "orders".id = "line_items".order_id
+JOIN "products" ON "products".id = "line_items".product_id
+GROUP BY "orders".id
+ORDER BY "orders".id;
+
+-- 10. How much has each customer spent in total?
+SELECT "customers".first_name, SUM("products".unit_price * "line_items".quantity) as total_cost
+FROM "products"
+JOIN "line_items" ON "products".id = "line_items".order_id
+JOIN "orders" ON "orders".id = "line_items".product_id
+JOIN "addresses" ON "addresses".id = "orders".address_id
+JOIN "customers" ON "customers".id = "addresses".customer_id
+GROUP BY "customers".id
+ORDER BY "total_cost";
+
+-- 11. How much has each customer spent in total? Customers who have spent $0 should still show up in the table. It should say 		0, not NULL (research coalesce).
+-- I think I got close!?
+SELECT "customers".first_name, SUM(COALESCE("products".unit_price, 0) * COALESCE("line_items".quantity, 0)) as total_cost
+FROM "products"
+JOIN "line_items" ON "products".id = "line_items".order_id
+JOIN "orders" ON "orders".id = "line_items".product_id
+JOIN "addresses" ON "addresses".id = "orders".address_id
+JOIN "customers" ON "customers".id = "addresses".customer_id
+GROUP BY "customers".id
+ORDER BY "total_cost";
